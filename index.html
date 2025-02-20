@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script>
+    const fetch_details = async () => {
+        const responce = await fetch("http://localhost:8000/election/register", {
+            "method" : "POST",
+            "headers" : {
+                "Content_Type" : "application/json",
+                "access_token" : "eyJhbGciOiJIUzI1NiIsImtpZCI6IjBYeXpjSm1ZYTVmRVhBSTUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3BtcGxvZXZ4c3FlbHZ3bXJ3aGZwLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJmYWVlNWQyMS04NzNkLTRkNTktOTgxNS1jZTlhY2ExYzBiOGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzM5OTUxNzA0LCJpYXQiOjE3Mzk5NDgxMDQsImVtYWlsIjoicHJhc2hpa2JoaW10ZTI5QGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJwcmFzaGlrYmhpbXRlMjlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiZmFlZTVkMjEtODczZC00ZDU5LTk4MTUtY2U5YWNhMWMwYjhkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Mzk5NDgxMDR9XSwic2Vzc2lvbl9pZCI6ImE5MjViYWQ4LTVhNTItNGEyNS05ODA3LTM5NzA2MDg2YmQ3NiIsImlzX2Fub255bW91cyI6ZmFsc2V9.pqKBSt3QNOvIXvGuBFkkztBFxK5JOisqzl3vx8UpKgc",
+                "refresh_token" : "aM2kI89ePi7_F2SaQ9TSkQ"
+            },
+            "body" : JSON.stringify({
+                "poistion" : "Techanical Sercretory",
+                "year_eligible" : {
+                    "years" : ["3"]
+                },
+                "branch_eligible" : {
+                    "branch" : ["CSE"]
+                },
+                "requirments" : "Must be college student.",
+                "start" : "2024-02-19 12:30:45.123 UTC",
+                "end" : "2024-02-20 12:30:45.123 UTC"
+            })
+        });
+
+        console.log(responce.json());
+    }
+</script>
+<body>
+    <button onclick="fetch_details()">Fetch the details</button>
+</body>
+</html> 
