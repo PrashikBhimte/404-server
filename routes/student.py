@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from dependencies import get_user_id
 from supabase_client import supabase
 
@@ -14,3 +14,25 @@ def get_student_details(id : str = Depends(get_user_id)):
     else :
         raise HTTPException(status_code=404, detail="User details not found, may be access token is incorrect or failed.")
 
+
+@router.get("/allstudents")
+async def get_students(branch: str = Query(None), year: int = Query(None)):
+
+    try:
+        query = supabase.table("Students").select("*")
+
+        if branch:
+            query = query.eq("branch", branch)
+
+        if year:
+            query = query.eq("year", year)
+
+        response = query.execute()
+
+        if not response.data:
+            return {"message": "No students found with the given filters"}
+
+        return {"students": response.data}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

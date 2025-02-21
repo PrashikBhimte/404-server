@@ -1,37 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Signup Form</title>
 </head>
-<script>
-    const fetch_details = async () => {
-        const responce = await fetch("http://localhost:8000/election/register", {
-            "method" : "POST",
-            "headers" : {
-                "Content_Type" : "application/json",
-                "access_token" : "eyJhbGciOiJIUzI1NiIsImtpZCI6IjBYeXpjSm1ZYTVmRVhBSTUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3BtcGxvZXZ4c3FlbHZ3bXJ3aGZwLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJmYWVlNWQyMS04NzNkLTRkNTktOTgxNS1jZTlhY2ExYzBiOGQiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzM5OTUxNzA0LCJpYXQiOjE3Mzk5NDgxMDQsImVtYWlsIjoicHJhc2hpa2JoaW10ZTI5QGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJwcmFzaGlrYmhpbXRlMjlAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiZmFlZTVkMjEtODczZC00ZDU5LTk4MTUtY2U5YWNhMWMwYjhkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Mzk5NDgxMDR9XSwic2Vzc2lvbl9pZCI6ImE5MjViYWQ4LTVhNTItNGEyNS05ODA3LTM5NzA2MDg2YmQ3NiIsImlzX2Fub255bW91cyI6ZmFsc2V9.pqKBSt3QNOvIXvGuBFkkztBFxK5JOisqzl3vx8UpKgc",
-                "refresh_token" : "aM2kI89ePi7_F2SaQ9TSkQ"
-            },
-            "body" : JSON.stringify({
-                "poistion" : "Techanical Sercretory",
-                "year_eligible" : {
-                    "years" : ["3"]
-                },
-                "branch_eligible" : {
-                    "branch" : ["CSE"]
-                },
-                "requirments" : "Must be college student.",
-                "start" : "2024-02-19 12:30:45.123 UTC",
-                "end" : "2024-02-20 12:30:45.123 UTC"
-            })
-        });
 
-        console.log(responce.json());
-    }
-</script>
 <body>
-    <button onclick="fetch_details()">Fetch the details</button>
+    <h2>Signup Form</h2>
+
+    <form id="signupForm">
+        <label for="profilePhoto">Profile Photo:</label>
+        <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*" required>
+        <br><br>
+
+        <button type="submit">Signup</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const profilePhoto = document.getElementById("profilePhoto").files[0];
+
+            if (!profilePhoto) {
+                document.getElementById("responseMessage").textContent = "Please select a profile photo.";
+                return;
+            }
+
+            const formData = new FormData();
+            
+            // Convert user data to JSON string
+            const userData = {
+                "role": "student",
+                "data": {
+                    "branch": "CSE",
+                    "club": "",
+                    "collegeRegNo": "2022BCS006",
+                    "email": "yashdeveloper226@gmail.com",
+                    "fullName": "Prashik Bhimte",
+                    "parentEmail": "yashdeveloper226@gmail.com",
+                    "parentPhone": 8459058302,
+                    "position": "",
+                    "year": "3",
+                    "password": "prashik123"
+                }
+            };
+
+            // Append user data as a plain string (not a Blob)
+            // formData.append("user", JSON.stringify(userData)); 
+            formData.append("file", profilePhoto);
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/profilephoto", {
+                    method: "POST",
+                    headers : {
+                        "role" : "student",
+                        "id" : "2022BCS006"
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                document.getElementById("responseMessage").textContent = data.status || data.detail;
+
+                if (response.ok) {
+                    alert("Signup successful");
+                } else {
+                    alert("Signup failed: " + JSON.stringify(data));
+                    await navigator.clipboard.writeText(JSON.stringify(data));
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("responseMessage").textContent = "An error occurred.";
+            }
+        });
+    </script>
 </body>
-</html> 
+
+</html>

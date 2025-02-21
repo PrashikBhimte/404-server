@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Header
-from classModels import User, Student, Faculty, LoginDetails, TokenRequest
-from supabase_client import supabase
+from fastapi import APIRouter, HTTPException, Header, UploadFile, File
+from classModels import User, Student, Faculty, LoginDetails
+from supabase_client import supabase,  supabase_url
 from typing import Annotated
 from dependencies import get_user_role
 
@@ -28,11 +28,12 @@ def signup(user: User):
         try:
             role = user.role.capitalize()
             inserted_data = dict(validated_user)
-            inserted_data.pop("password")
+            password = inserted_data.pop("password")
+            inserted_data['profilePhoto'] = ""
             response = supabase.table(role).insert(inserted_data).execute()
             return {"status": "Successfully signed up", "response" : response}
-        except :
-            raise HTTPException(status_code=400, detail="Unable to insert the user data.")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Unable to insert the user data. {e}")
     
     raise HTTPException(status_code=400, detail="Signup failed. Email may already be in use.")
 
@@ -44,6 +45,7 @@ def signin(user : LoginDetails):
 
         if responce.session :
             role = get_user_role(responce.session.access_token)
+
             return {
                 "access_token" : responce.session.access_token,
                 "refresh_token" : responce.session.refresh_token,
@@ -51,8 +53,8 @@ def signin(user : LoginDetails):
             }
         else :
             raise HTTPException(status_code=400, detail="Signin failed. Email may not be verifed yet.")
-    except :
-        raise HTTPException(status_code=401, detail="Invalid Credentials.")
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid Credentials. {e}")
 
 @router.post('/signout')
 def signout():
@@ -75,3 +77,25 @@ def get_new_access_token(refresh_token: str = Header(None, alias="refresh_token"
         return { "access_token" : new_tokens.session.access_token, "refresh_token" : new_tokens.session.refresh_token }
     else :
         raise HTTPException(status_code=401, detail="Invalid tokens")
+    
+
+@router.post('/profilephoto')
+async def post_profile_photo(file: UploadFile = File(...), id: str = Header(None, alias="id"), role: str = Header(None, alias="role")):
+    try:
+        file_extension = file.filename.split(".")[-1]
+        file_name = f"{id}.{file_extension}"
+
+        file_content = await file.read()
+
+        response = supabase.storage.from_("profile-images").upload(
+            file_name, file_content, {"content-type": file.content_type}
+        )
+
+        image_url = f"{supabase_url}/storage/v1/object/public/{file_name}"
+
+        supabase.table(role.capitalize()).update({"profilePhoto": image_url}).eq("id", id).execute()
+        
+        return {"response": response}
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
