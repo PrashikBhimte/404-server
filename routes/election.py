@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from dependencies import get_user_id, get_faculty_details, get_student_details
-from classModels import ElectionDetails, Candidate, Vote
+from classModels import ElectionDetails, Candidate, Vote, ElectionId
 from supabase_client import supabase
 
 router = APIRouter()
@@ -56,7 +56,7 @@ def apply_as_candiate(candidate : Candidate, id : str = Depends(get_user_id)):
 
     
 @router.post('/candidates')
-def get_election_candiates(electionId : dict):
+def get_election_candiates(electionId : ElectionId):
     response = supabase.table('Candidates').select("*").eq("electionId", electionId['electionId']).execute()
     candidates = []
     for i in response.data:

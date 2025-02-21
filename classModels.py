@@ -44,6 +44,9 @@ class ElectionDetails(BaseModel):
     start : str
     end : str
 
+class ElectionId(BaseModel) :
+    electionId : str
+
 class Candidate(BaseModel) :
     electionId : int
     manifesto : str
@@ -81,15 +84,10 @@ class ComplaintVote(BaseModel):
 
 class FacilityApplication(BaseModel):
     facilitiy: str
-    # studentId: str
-    # facultyId: str
-    # status: str
     forDate: str
     timeDuration: str
     purpose: str
-    # forwardedSchema: List[Dict[str, Any]]
 
 class ActionSchema(BaseModel):
-    facultyId: str
-    dateTime: str
     action: str
+    appliactionId : str
