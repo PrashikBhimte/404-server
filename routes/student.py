@@ -9,14 +9,14 @@ def get_student_details(id : str = Depends(get_user_id)):
 
     user_details = dict(supabase.table('Student').select("*").eq("id", id).execute())
     
-    if user_details['count'] != 0:
+    if len(user_details['data']) == 0:
         return dict(user_details['data'][0])
     else :
         raise HTTPException(status_code=404, detail="User details not found, may be access token is incorrect or failed.")
 
 
-@router.get("/allstudents")
-async def get_students(branch: str = Query(None), year: int = Query(None)):
+@router.get("/all")
+async def get_all_students(branch: str = Query(None), year: int = Query(None)):
 
     try:
         query = supabase.table("Students").select("*")
