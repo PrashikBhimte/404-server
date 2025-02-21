@@ -90,4 +90,4 @@ class FacilityApplication(BaseModel):
 
 class ActionSchema(BaseModel):
     action: str
-    appliactionId : str
+    applicationId : str

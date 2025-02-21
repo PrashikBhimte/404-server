@@ -15,8 +15,8 @@ def get_faculty_details(id : str = Depends(get_user_id)):
         raise HTTPException(status_code=404, detail="User details not found, may be access token is incorrect or failed.")
 
 
-@router.get("/faculty")
-async def get_faculty(department: str = Query(None), designation: str = Query(None)):
+@router.get("/all")
+async def get_all_faculties(department: str = Query(None), designation: str = Query(None)):
     
     try:
         query = supabase.table("Faculty").select("*")
@@ -25,14 +25,15 @@ async def get_faculty(department: str = Query(None), designation: str = Query(No
             query = query.eq("department", department)
 
         if designation:
-            query = query.eq("designation", designation)
+            query = query.eq("desgination", designation)
 
         response = query.execute()
 
-        if not response.data:
+        if  len(response.data) == 0:
             return {"message": "No faculty found with the given filters"}
 
         return {"faculty": response.data}
 
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
