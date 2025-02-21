@@ -57,19 +57,21 @@ def apply_as_candiate(candidate : Candidate, id : str = Depends(get_user_id)):
     
 @router.post('/candidates')
 def get_election_candiates(electionId : ElectionId):
-    response = supabase.table('Candidates').select("*").eq("electionId", electionId['electionId']).execute()
+
+    response = supabase.table('Candidates').select("*").eq("electionId", electionId.electionId).execute()
     candidates = []
     for i in response.data:
         details = get_student_details(i['id'])
-        details.pop('created_at')
-        details.pop('club')
-        details.pop('parentEmail')
-        details.pop('parentPhone')
-        details.pop('position')
-        details['manifesto'] = i['manifesto']
-        details['proposals'] = i['proposals']
+        if details:
+            details.pop('created_at')
+            details.pop('club')
+            details.pop('parentEmail')
+            details.pop('parentPhone')
+            details.pop('position')
+            details['manifesto'] = i['manifesto']
+            details['proposals'] = i['proposals']
 
-        candidates.append(details)
+            candidates.append(details)
 
     return { "candidates" : candidates }
 

@@ -45,7 +45,7 @@ class ElectionDetails(BaseModel):
     end : str
 
 class ElectionId(BaseModel) :
-    electionId : str
+    electionId : int
 
 class Candidate(BaseModel) :
     electionId : int
