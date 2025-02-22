@@ -91,3 +91,16 @@ class FacilityApplication(BaseModel):
 class ActionSchema(BaseModel):
     action: str
     applicationId : str
+
+class Application(BaseModel):
+    type : str
+    title : str
+    description : str
+
+class ApplicationAction(BaseModel):
+    action : str
+    applicationId : str
+    forwardedTo : str | None
+
+class ApplicationId(BaseModel):
+    applicationId : str

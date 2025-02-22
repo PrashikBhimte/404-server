@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from dependencies import get_user_id, get_faculty_details, get_student_details
+from dependencies import get_user_id, get_faculty_details, get_student_details, send_email
 from classModels import ElectionDetails, Candidate, Vote, ElectionId
 from supabase_client import supabase
 
@@ -16,6 +16,13 @@ def register_the_election(election_details : ElectionDetails, id : str = Depends
         election_details['conductedBy'] = user_details['fullName']
         election_details['status'] = "Ongoing"
         response = supabase.table('Elections').insert(election_details).execute()
+
+        students = list(supabase.table('Student').select("*").execute().data)
+    
+        for i in students:
+            email = i['email']
+            send_email(email, "to_all_students_regarding_election", details = response.data[0])
+        
         return response.data[0]
     else :
         raise HTTPException(status_code=401, detail="You are not authorised to conducte an election.")
@@ -33,23 +40,24 @@ def apply_as_candiate(candidate : Candidate, id : str = Depends(get_user_id)):
     candidate = dict(candidate)
     candidate['id'] = id
 
-    election_details = dict(supabase.table('Elections').select("*").eq("electionId", candidate['electionId']).execute().data[0])
+    election_details = dict(supabase.table('Elections').select("*").eq("electionId", int(candidate['electionId'])).execute().data[0])
     candidate_details = get_student_details(id)
 
     if candidate_details['year'] in election_details['year_eligible']['years'] and candidate_details['branch'] in election_details['branch_eligible']['branch']:
         try :
 
             response = supabase.table('Candidates').insert(candidate).execute()
+    
             vote_details = {
                 "candidateId" : id,
-                "electionId" : candidate['electionId'],
+                "electionId" : int(candidate['electionId']),
                 "votes" : 0
             }
             vote_response = supabase.table('Votes').insert(vote_details).execute()
 
             return response
-        except :
-            raise HTTPException(status_code=400, detail="Unabale to register as candidate.")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Unabale to register as candidate. {e}")
 
     else: 
         raise HTTPException(status_code=401, detail="you are not eligible for this election.")
@@ -90,6 +98,9 @@ def vote(vote : Vote, id : str = Depends(get_user_id)):
             "voterId" : id,
             "electionId" : vote.electionId
         }).execute()
+        
+        send_email(get_student_details(id)['email'], "regarding_vote_done_to_candidate", vote)
+
         return { "status" : "Your vote is counted successfully!" }
     except :
         raise HTTPException(status_code=400, detail="Your Vote is not count due to some issue. Please try again!")

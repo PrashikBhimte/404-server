@@ -6,11 +6,24 @@ import google.generativeai as genai
 from os import getenv
 from dotenv import load_dotenv
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from datetime import datetime
+
 load_dotenv()
 
 GEMINI_API_KEY = getenv("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
+
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SENDER_EMAIL = getenv("SENDER_EMAIL")
+SENDER_PASSWORD = getenv("SENDER_PASSWORD")  
+# RECEIVER_EMAIL = "prashikbhimte29@gmail.com"
+
 
 def is_valguare(content : str):
     try:
@@ -77,4 +90,54 @@ def get_user_role(access_token):
                     return ""
 
         raise HTTPException(status_code=401, detail="Invalid tokens")
+    
+
+def send_email(email : str, sendingFor : str, details = None):
+
+    date_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    emailContents = {
+        "to_parent_as_student_goes_out" : {
+            "subject" : "Student is going out",
+            "body" : f"Hello, your child is going out of college at {date_time}. Please be aware of it."
+        },
+        "to_parent_as_student_comes_in" : {
+            "subject" : "Student is coming in",
+            "body" : f"Hello, your child is coming in college at {date_time}. Please be aware of it."
+        },
+        "to_class_coordinator" : {
+            "subject" : "Doctor's Advice",
+            "body" : f"Hello, Doctor has given advice to the student. Please take necessary actions. Details : {details}"
+        },
+        "to_all_students_regarding_election" : {
+            "subject" : "New Election",
+            "body" : f"Hello, there is an election going to be held. Please visit site for more information. Details : {details}"
+        },
+        "regarding_vote_done_to_candidate" : {
+            "subject" : "Vote Done",
+            "body" : f"Hello, you have got a vote. Please visit site for election live information. Deatils : {details}"
+        }
+    }
+    
+    subject = emailContents[sendingFor]["subject"]
+    body = emailContents[sendingFor]["body"]
+
+    message = MIMEMultipart()
+    message["From"] = SENDER_EMAIL
+    message["To"] = email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        
+        server.sendmail(SENDER_EMAIL, email, message.as_string())
+        
+        server.quit()
+        return True
+
+    except Exception as e:
+        return False
     

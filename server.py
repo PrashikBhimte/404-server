@@ -9,7 +9,6 @@ from routes.doctorAdvice import router as doctor_routes
 from routes.inOutRegister import router as inOutRegister_routes
 from routes.cheating import router as cheating_routes
 from routes.compliant import router as complaint_routes
-from routes.facilities import router as facilities_routes
 from routes.billing import router as billing_routes
 from routes.applications import router as applications_routes
 
@@ -23,7 +22,6 @@ server.include_router(doctor_routes, prefix="/doctor")
 server.include_router(inOutRegister_routes, prefix='/college')
 server.include_router(cheating_routes, prefix='/cheating')
 server.include_router(complaint_routes, prefix='/complaints')
-server.include_router(facilities_routes, prefix='/facilities')
 server.include_router(billing_routes, prefix='/billing')
 server.include_router(applications_routes, prefix='/applications')
 
