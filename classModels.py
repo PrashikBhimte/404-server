@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
 
 class User(BaseModel):
     role: str
@@ -18,6 +17,10 @@ class Student(BaseModel):
     year: str
     password: str
 
+class StudentId(BaseModel):
+    collegeRegNo : str | None
+    StudentId : str | None
+
 class Faculty(BaseModel):
     id : str
     collegeId: str
@@ -27,6 +30,10 @@ class Faculty(BaseModel):
     fullName: str
     phone: int
     password: str
+
+class FacultyId(BaseModel):
+    facultyId : str | None
+    collegeId : str | None
 
 class LoginDetails(BaseModel):
     email : str

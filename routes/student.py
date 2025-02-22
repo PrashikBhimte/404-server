@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from dependencies import get_user_id
 from supabase_client import supabase
+from classModels import StudentId
 
 router = APIRouter()
 
@@ -36,3 +37,18 @@ async def get_all_students(branch: str = Query(None), year: int = Query(None)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post('/deatils_by_id')
+def get_student_details_by_id(studentDetails : StudentId):
+
+    if studentDetails.StudentId:
+        user_details = dict(supabase.table('Student').select("*").eq("id", studentDetails.StudentId).execute())
+    elif studentDetails.collegeRegNo:
+        user_details = dict(supabase.table('Student').select("*").eq("collegeRegNo", studentDetails.collegeRegNo).execute())
+    else :
+        raise HTTPException(status_code=400, detail="Either StudentId or collegeRegNo is required.")
+
+    if len(user_details['data']) != 0:
+        return dict(user_details['data'][0])
+    else :
+        raise HTTPException(status_code=404, detail="User details not found, may be access token is incorrect or failed.")

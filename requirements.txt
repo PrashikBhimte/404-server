@@ -4,3 +4,6 @@ supabase
 python-dotenv
 google-generativeai
 python-multipart
+numpy
+face_recognition
+opencv-python

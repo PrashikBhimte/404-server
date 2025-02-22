@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends
 from dependencies import get_user_id
 from supabase_client import supabase
 from classModels import Application, ApplicationAction, ApplicationId

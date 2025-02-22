@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from dependencies import get_user_id, get_faculty_details, get_student_details, send_email
 from classModels import ElectionDetails, Candidate, Vote, ElectionId
 from supabase_client import supabase
+import pickle
+import face_recognition
+import numpy as np
+import cv2
 
 router = APIRouter()
 
@@ -104,3 +108,38 @@ def vote(vote : Vote, id : str = Depends(get_user_id)):
         return { "status" : "Your vote is counted successfully!" }
     except :
         raise HTTPException(status_code=400, detail="Your Vote is not count due to some issue. Please try again!")
+    
+
+
+@router.post("/verify-student")
+async def verify_user(file: UploadFile = File(...), user_id: str = Depends(get_user_id)):
+    try:
+        BUCKET_NAME = "pkl-files"
+        file_path = f"{user_id}.pkl"
+        response = supabase.storage.from_(BUCKET_NAME).download(file_path)
+
+        if not response:
+            raise HTTPException(status_code=404, detail="Face data not found")
+
+        stored_encoding = pickle.loads(response)
+
+        contents = await file.read()
+        np_arr = np.frombuffer(contents, np.uint8)
+        image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+        face_encodings = face_recognition.face_encodings(image)
+        if not face_encodings:
+            raise HTTPException(status_code=400, detail="No face detected in the uploaded image")
+
+        uploaded_encoding = face_encodings[0]
+
+        results = face_recognition.compare_faces([stored_encoding], uploaded_encoding)
+
+        if results[0]:
+            return {"message": "User validated successfully"}
+        else:
+            raise HTTPException(status_code=401, detail="Face does not match")
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))

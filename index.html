@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -59,7 +59,7 @@
                     method: "POST",
                     headers : {
                         "role" : "student",
-                        "id" : "2022BCS006"
+                        "id" : "9da59859-f27e-4823-89c4-d2ce2d991fc7"
                     },
                     body: formData
                 });
@@ -81,4 +81,99 @@
     </script>
 </body>
 
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Verification</title>
+</head>
+<body>
+    <h1>Face Verification</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="capture">Capture & Verify</button>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const captureButton = document.getElementById("capture");
+        
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => console.error("Error accessing webcam:", err));
+        
+        captureButton.addEventListener("click", async () => {
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append("file", blob, "image.png");
+                // formData.append("user_id", "test_user_id");
+                
+                try {
+                    const response = await fetch("http://127.0.0.1:8000/election/verify-student", {
+                        method: "POST",
+                        headers: {
+                            "access_token" : "eyJhbGciOiJIUzI1NiIsImtpZCI6IjBYeXpjSm1ZYTVmRVhBSTUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3BtcGxvZXZ4c3FlbHZ3bXJ3aGZwLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI5ZGE1OTg1OS1mMjdlLTQ4MjMtODljNC1kMmNlMmQ5OTFmYzciLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzQwMjE5NzkxLCJpYXQiOjE3NDAyMTYxOTEsImVtYWlsIjoieWFzaGRldmVsb3BlcjIyNkBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoieWFzaGRldmVsb3BlcjIyNkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiI5ZGE1OTg1OS1mMjdlLTQ4MjMtODljNC1kMmNlMmQ5OTFmYzcifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc0MDIxNjE5MX1dLCJzZXNzaW9uX2lkIjoiOWM0YjgwMTgtMzAzYi00ZTNiLWIzNTUtOTJiMjQ3NjdlOWFlIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.MpglnP31f4eOCvHJM544NvAjdc6-IdrUjz1mA3u1tIg"
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    if (response.status === 200) {
+                        console.log("Success:", data.message);
+                    } else {
+                        console.error("Error:", data.detail);
+                    }
+                } catch (error) {
+                    console.error("Request failed:", error);
+                }
+            }, "image/png");
+        });
+    </script>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Voting</title>
+</head>
+<body>
+    <h1>Live Vote Count</h1>
+    <div id="votes">Connecting...</div>
+    
+    <script>
+        const ws = new WebSocket("ws://localhost:8000/ws/votes");
+        
+        ws.onopen = function() {
+            console.log("Connected to WebSocket server");
+            document.getElementById("votes").innerText = `Connected`;
+        };
+        
+        ws.onmessage = function(event) {
+            const voteData = JSON.parse(event.data);
+            document.getElementById("votes").innerText = `Votes: ${voteData}`;
+        };
+        
+        ws.onclose = function() {
+            console.log("Disconnected from WebSocket server");
+            document.getElementById("votes").innerText = "Disconnected";
+        };
+        
+        ws.onerror = function(error) {
+            console.error("WebSocket Error:", error);
+        };
+    </script>
+</body>
 </html>

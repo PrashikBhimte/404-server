@@ -1,5 +1,4 @@
-from typing import Annotated
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException, UploadFile, File
 from supabase_client import supabase
 
 import google.generativeai as genai
@@ -11,6 +10,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from datetime import datetime
+
+import face_recognition
+import pickle
+import os
 
 load_dotenv()
 
@@ -29,7 +32,7 @@ def is_valguare(content : str):
     try:
         query = (
                 "Respond ONLY with an integer: 1 (True) if the content is vulgar, "
-                "or 0 (False) if it is clean. Do NOT include any other text. "
+                "or 0 (False) if it is clean. Check sure that content is good enough to show all students. Do NOT include any other text. "
                 f"Content: {content}"
             )
         response = model.generate_content(query)
@@ -141,3 +144,27 @@ def send_email(email : str, sendingFor : str, details = None):
     except Exception as e:
         return False
     
+
+def register_user_face(id, image : UploadFile = File(...)):
+
+    face_encodings = face_recognition.face_encodings(face_recognition.load_image_file(image.file))
+
+    if face_encodings:
+
+        encoding = face_encodings[0]
+        filename = f"{id}.pkl"
+
+        with open(filename, "wb") as f:
+            pickle.dump(encoding, f)
+        
+        BUCKET_NAME = "pkl-files"
+        
+        with open(filename, "rb") as f:
+            print("Uploading file")
+            supabase.storage.from_(BUCKET_NAME).upload(filename, f, {"content-type": "application/octet-stream"})
+        
+        os.remove(filename)
+        
+        return True
+    else:
+        return False
