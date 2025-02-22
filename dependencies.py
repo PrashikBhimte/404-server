@@ -11,9 +11,9 @@ from email.mime.text import MIMEText
 
 from datetime import datetime
 
-import face_recognition
-import pickle
-import os
+# import face_recognition
+# import pickle
+# import os
 
 load_dotenv()
 
@@ -145,26 +145,26 @@ def send_email(email : str, sendingFor : str, details = None):
         return False
     
 
-def register_user_face(id, image : UploadFile = File(...)):
+# def register_user_face(id, image : UploadFile = File(...)):
 
-    face_encodings = face_recognition.face_encodings(face_recognition.load_image_file(image.file))
+#     face_encodings = face_recognition.face_encodings(face_recognition.load_image_file(image.file))
 
-    if face_encodings:
+#     if face_encodings:
 
-        encoding = face_encodings[0]
-        filename = f"{id}.pkl"
+#         encoding = face_encodings[0]
+#         filename = f"{id}.pkl"
 
-        with open(filename, "wb") as f:
-            pickle.dump(encoding, f)
+#         with open(filename, "wb") as f:
+#             pickle.dump(encoding, f)
         
-        BUCKET_NAME = "pkl-files"
+#         BUCKET_NAME = "pkl-files"
         
-        with open(filename, "rb") as f:
-            print("Uploading file")
-            supabase.storage.from_(BUCKET_NAME).upload(filename, f, {"content-type": "application/octet-stream"})
+#         with open(filename, "rb") as f:
+#             print("Uploading file")
+#             supabase.storage.from_(BUCKET_NAME).upload(filename, f, {"content-type": "application/octet-stream"})
         
-        os.remove(filename)
+#         os.remove(filename)
         
-        return True
-    else:
-        return False
+#         return True
+#     else:
+#         return False
