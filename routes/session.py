@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Header, UploadFile, File
 from classModels import User, Student, Faculty, LoginDetails
 from supabase_client import supabase,  supabase_url
-from dependencies import get_user_role
+from dependencies import get_user_role, register_user_face
 
 router = APIRouter()
 
@@ -86,7 +86,7 @@ async def post_profile_photo(file: UploadFile = File(...), id: str = Header(None
 
         file_content = await file.read()
 
-        # register_user_face(id, file)
+        register_user_face(id, file)
 
         response = supabase.storage.from_("profile-images").upload(
             file_name, file_content, {"content-type": file.content_type}
