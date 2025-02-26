@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from classModels import FacilityApplication, ActionSchema
+from classModels import FacilityBook, Date
 from supabase_client import supabase
 from dependencies import get_user_id
 from datetime import datetime
@@ -16,72 +16,38 @@ async def get_all_facilities():
     except :
         return response.data
 
-@router.post("/apply")
-async def apply_for_facility(application: FacilityApplication, id : str = Depends(get_user_id)):
-    application = application.dict()
-    application["studentId"] = id
-    application["status"] = "pending"
-    application['facultyId'] = dict(supabase.table('Facilities').select('*').eq('facilitiy', application['facilitiy']).execute().data[0])['facultyId']
-    application['forwardedSchema'] = []
-    response = supabase.table("FacilitiyApplication").insert(application).execute()
-    try :
-        if response.error:
-            raise HTTPException(status_code=400, detail=response.error.message)
-    except :
-        return response.data
+@router.post("/book")
+async def apply_for_facility(facility: FacilityBook, id: str = Depends(get_user_id)):  
+    bookings = list(supabase.table("FacilityBooked")
+                    .select("*")
+                    .eq("facility", facility.facility)  # ✅ Ensure same facility
+                    .eq("date", facility.date)          # ✅ Ensure same date
+                    .execute().data)
 
-@router.get("/applications")
-async def get_applications(id : str = Depends(get_user_id)):
+    facility_dict = facility.dict()
+    facility_dict["studentId"] = id
 
-    response = supabase.table("FacilitiyApplication").select("*").eq("facultyId", id).execute()
-    
-    try :
-        if response.error:
-            raise HTTPException(status_code=400, detail=response.error.message)
-    except :
-        return response.data
+    for existing_booking in bookings:
+        existing_from = existing_booking["fromTime"]
+        existing_to = existing_booking["toTime"]
 
-@router.post("/action")
-async def action_on_application(action: ActionSchema, id: str = Depends(get_user_id)):  # Ensure action is received as a dict
+        # Check if new booking overlaps with existing booking
+        if not (facility_dict["toTime"] <= existing_from or facility_dict["fromTime"] >= existing_to):
+            raise HTTPException(status_code=400, detail="Slot is already booked.")
+
+    response = supabase.table("FacilityBooked").insert(facility_dict).execute()
     try:
-        action = dict(action)
-        action["facultyId"] = id
-        action["date"] = str(datetime.now())
+        if response.error:
+            raise HTTPException(status_code=400, detail=response.error.message)
+    except :
+        return {"message": "Facility booked successfully!"}
 
-        applicationId = action.pop("applicationId", None)
-        if not applicationId:
-            raise HTTPException(status_code=400, detail="Missing applicationId")
 
-        existing_data = supabase.table("FacilitiyApplication").select("forwardedSchema").eq("id", applicationId).execute()
+@router.post('/bookings')
+def get_all_booking(date : Date):
 
-        if existing_data.data:
-            array = existing_data.data[0].get("forwardedSchema", [])
-            if not isinstance(array, list):
-                array = []
+    response = supabase.table('FacilityBooked').select("*").eq('date', date.date).execute()
 
-            array.append(action) 
-            json_data = json.dumps(array) 
-
-            response = supabase.table("FacilitiyApplication").update({"forwardedSchema": json_data, "status": action['action']}).eq("id", applicationId).execute()
-
-            try :
-                if response.error:
-                    raise HTTPException(status_code=400, detail=response.error.message)
-            except :
-                return response.data
-
-        else:
-            raise HTTPException(status_code=404, detail="Application not found")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-
-@router.get("/status")
-async def get_application_status(id : str = Depends(get_user_id)):
-
-    response = supabase.table("FacilitiyApplication").select("*").eq("studentId", id).execute()
-    
     try :
         if response.error:
             raise HTTPException(status_code=400, detail=response.error.message)

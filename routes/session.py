@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, Header, UploadFile, File
+from fastapi import APIRouter, HTTPException, Header, UploadFile, File, Depends
 from classModels import User, Student, Faculty, LoginDetails
 from supabase_client import supabase,  supabase_url
-from dependencies import get_user_role, register_user_face
+from dependencies import get_user_role, register_user_face, get_user_id
 
 router = APIRouter()
 
@@ -101,3 +101,9 @@ async def post_profile_photo(file: UploadFile = File(...), id: str = Header(None
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+@router.get('/verify')
+def verify_user(id : str = Depends(get_user_id)):
+
+    return True

@@ -76,8 +76,8 @@ class InOutReg(BaseModel):
 class StudentCheated(BaseModel):
     collegeRegNo : str
     reason : str
-    proofUrl : str
-    date : str
+    # proofUrl : str
+    # date : str
     examination : str
     invigilatorCollegeId : str
     subject : str
@@ -111,3 +111,29 @@ class ApplicationAction(BaseModel):
 
 class ApplicationId(BaseModel):
     applicationId : str
+
+class Budget(BaseModel):
+    categorie : str
+    name : str
+    totalBudget : int
+
+class Expense(BaseModel):
+    categorie : str
+    name : str
+    amount : int
+    reason : str
+
+class FundRelease(BaseModel):
+    categorie : str
+    name : str
+    reason : str
+    amount : int
+
+class FacilityBook(BaseModel):
+    facility : str
+    date : str
+    fromTime : str
+    toTime : str
+
+class Date(BaseModel):
+    date : str

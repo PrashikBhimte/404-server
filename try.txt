@@ -1,2 +1,62 @@
-sacjn a293
+from fastapi import APIRouter, HTTPException, Depends
+from classModels import FacilityBook, Date
+from supabase_client import supabase
+from dependencies import get_user_id
+from datetime import datetime
+import json
 
+router = APIRouter()
+
+
+class FacilityBook(BaseModel):
+    facility : str
+    date : str
+    fromTime : str
+    toTime : str
+
+class Date(BaseModel):
+    date : str
+
+@router.get("/all")
+async def get_all_facilities():
+    response = supabase.table("Facilities").select("*").execute()
+    try :
+        if response.error:
+            raise HTTPException(status_code=400, detail=response.error.message)
+    except :
+        return response.data
+
+@router.post("/book")
+async def apply_for_facility(facility: FacilityBook, id : str = Depends(get_user_id)):  
+
+    bookings = list(supabase.table('FacilityBooked').select("*").execute().data)
+
+    facility = dict(facility)
+    facility["studentId"] = id
+
+    for i in bookings :
+        if i['date'] == facility['book']:
+            if (facility['fromTime'] > i['fromTime'] and facility['toTime'] > i['fromTime']) or (facility['fromTime'] < i['toTime'] and facility['toTime'] < i['toTime']) :
+                continue
+            else :
+                raise HTTPException(status_code=400, detail="Slot is alreday booked.")
+
+    response = supabase.table("FacilityBooked").insert(facility).execute()
+
+    try :
+        if response.error:
+            raise HTTPException(status_code=400, detail=response.error.message)
+    except :
+        return response.data
+
+
+@router.get('/bookings')
+def get_all_booking(date : Date):
+
+    response = supabase.table('FacilityBooked').select("*").eq('date', date.date).execute()
+
+    try :
+        if response.error:
+            raise HTTPException(status_code=400, detail=response.error.message)
+    except :
+        return response.data

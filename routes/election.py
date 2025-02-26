@@ -33,7 +33,7 @@ def register_the_election(election_details : ElectionDetails, id : str = Depends
 
 @router.get('/elections')
 def get_ongoing_elections_details():
-    response = supabase.table('Elections').select("*").eq("status", "Ongoing").execute()
+    response = supabase.table('Elections').select("*").execute()
 
     if response:
         return response
@@ -111,11 +111,11 @@ def vote(vote : Vote, id : str = Depends(get_user_id)):
     
 
 
-@router.post("/verify-student")
+@router.post("/verifystudent")
 async def verify_user(file: UploadFile = File(...), user_id: str = Depends(get_user_id)):
     try:
         BUCKET_NAME = "pkl-files"
-        file_path = f"{user_id}.pkl"
+        file_path = f"/{user_id}.pkl"
         response = supabase.storage.from_(BUCKET_NAME).download(file_path)
 
         if not response:

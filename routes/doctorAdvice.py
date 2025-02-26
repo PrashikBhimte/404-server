@@ -19,7 +19,7 @@ def register_doctor_advice(doctor_advice : DoctorAdvice, id : str = Depends(get_
         send_email(class_coordinator_email, "to_class_coordinator", doctor_advice)
 
         doctor_advice = dict(doctor_advice)
-        doctor_advice['doctor_id'] = id
+        # doctor_advice['doctor_id'] = id
         response = supabase.table('DoctorAdvice').insert(doctor_advice).execute()
 
         if response:

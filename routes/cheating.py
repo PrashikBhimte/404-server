@@ -1,18 +1,25 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from classModels import StudentCheated
 from dependencies import get_user_id, get_faculty_details
-from supabase_client import supabase
+from supabase_client import supabase, supabase_url
+import json
 
 router = APIRouter()
 
 allowed_designations = ["HOD"]
 
 @router.post('/register')
-def register_student_cheated(student: StudentCheated, id : str = Depends(get_user_id)):
+async def register_student_cheated(student: str = Form(...), file : UploadFile = File(...) , id : str = Depends(get_user_id)):
+
+    try:
+        student_data = json.loads(student)
+        student = StudentCheated(**student_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid expense JSON data")
     
     student = dict(student)
 
-    designation = get_faculty_details(id)['designation']
+    designation = get_faculty_details(id)['desgination']
     if designation not in allowed_designations:
         raise HTTPException(status_code=400, detail="Only HOD can register a student as cheated")
     
@@ -31,11 +38,25 @@ def register_student_cheated(student: StudentCheated, id : str = Depends(get_use
     
     student["invigilatorName"] = faculty_details['fullName']
     student["invigilatorId"] = faculty_details['id']
+    student['proofUrl'] = ""
+    student.pop('invigilatorCollegeId')
 
-    response = supabase.table("StudentCheated").insert(student).execute()
-    
-    if response['error']:
-        raise HTTPException(status_code=400, detail="Failed to register student as cheated")
+    response = dict(supabase.table("StudentCheated").insert(student).execute().data[0])
+
+    file_extension = file.filename.split(".")[-1]
+    file_name = f"{response['id']}.{file_extension}"
+
+    file_content = await file.read()
+
+    res = supabase.storage.from_("cheated-proof").upload(
+            file_name, file_content, {"content-type": file.content_type}
+        )
+
+    image_url = f"{supabase_url}/storage/v1/object/public/cheated-proof//{file_name}"
+
+    response['proofUrl'] = image_url
+
+    response = dict(supabase.table("StudentCheated").update(response).eq('id', response['id']).execute().data[0])
     
     return {"status": "Successfully registered student as cheated", "response" : response}
 
@@ -45,7 +66,4 @@ def get_student_cheated():
 
     response = supabase.table("StudentCheated").select("*").execute()
 
-    if response['error']:
-        raise HTTPException(status_code=400, detail="Failed to fetch cheated students")
-
-    return response['data']
+    return response.data

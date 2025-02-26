@@ -12,8 +12,8 @@ def in_out_register(inoutreg : InOutReg, id : str = Depends(get_user_id)):
     if user['desgination'] == "HOD":
         response = dict(supabase.table('InOutRegister').insert(dict(inoutreg)).execute().data[0])
 
-        student_email = dict(supabase.table('Student').select("*").eq("collegeRegNo", inoutreg.collegeRegNo).execute().data[0])['email']
-
+        student_email = dict(supabase.table('Student').select("*").eq("collegeRegNo", inoutreg.collegeRegNo).execute().data[0])['parentEmail']
+     
         if inoutreg.in_or_out == "out":  
             send_email(student_email, "to_parent_as_student_goes_out")
         elif inoutreg.in_or_out == "in":
