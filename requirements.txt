@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 supabase
+dlib==19.22.99
 python-dotenv
 google-generativeai
 python-multipart
